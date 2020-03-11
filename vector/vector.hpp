@@ -13,6 +13,18 @@ namespace sjtu {
  */
 template<typename T>
 class vector {
+protected:
+	int _size;
+	int _capacity;
+	T* _elem;
+	void copy(T const* elem, int lo, int hi) {
+		_capacity = 2 * (hi - lo);
+		_size = hi - lo;
+		_elem = new T[_capacity];
+		for(int i = 0;i < _size;++ i) {
+			_elem[i] = elem[i + lo];
+		}
+	}
 public:
 	/**
 	 * TODO
@@ -25,6 +37,8 @@ public:
 	class const_iterator;
 	class iterator {
 	private:
+		vector* iter;
+		int pos;
 		/**
 		 * TODO add data members
 		 *   just add whatever you want.
@@ -93,8 +107,31 @@ public:
 	 * TODO Constructs
 	 * Atleast two: default constructor, copy constructor
 	 */
-	vector() {}
-	vector(const vector &other) {}
+	//default constructor
+	vector(int cap = 3, int siz = 0, T val = 0) {
+		_size = siz;
+		_capacity = cap;
+		_elem = new T[cap];
+		for(int i = 0;i < siz; ++ i) {
+			_elem[i] = val;
+		}
+	}
+	//copy constructor 1
+	vector(const vector &other) {
+		copy(other._elem, 0, other._size);
+	}
+	//copy constructor 2
+	vector(const vector &other, int lo, int hi) {
+		copy(other._elem, lo, hi);
+	}
+	//copy constructor 3
+	vector(const T* A, int n) {
+		copy(A, 0, n);
+	}
+	//copy constructor 4
+	vector(const T* A, int lo, int hi) {
+		copy(A, lo, hi);
+	}
 	/**
 	 * TODO Destructor
 	 */
