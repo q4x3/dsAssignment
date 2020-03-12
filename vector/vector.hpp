@@ -80,11 +80,11 @@ public:
 		 * as well as operator-
 		 */
 		iterator operator+(const int &n) const {
-			if(_pos + n >= this->_iter->_size) throw index_out_of_bound();//necessary?
+			if(_pos + n >= this->_iter->_size) {std::cout << "t1" << std::endl;  index_out_of_bound();}//necessary?
 			return iterator(_iter, _pos + n);
 		}
 		iterator operator-(const int &n) const {
-			if(_pos - n < 0) throw index_out_of_bound();//necessary?
+			if(_pos - n < 0) {std::cout << "t2" << std::endl;  index_out_of_bound();}//necessary?
 			return iterator(_iter, _pos - n);
 		}
 		// return the distance between two iterators,
@@ -94,12 +94,12 @@ public:
 			return _pos - rhs._pos;
 		}
 		iterator& operator+=(const int &n) {
-			if(_pos + n >= this->_iter->_size) throw index_out_of_bound();//necessary?
+			if(_pos + n >= this->_iter->_size) {std::cout << "t3" << std::endl;  index_out_of_bound();}//necessary?
 			_pos += n;
 			return *this;
 		}
 		iterator& operator-=(const int &n) {
-			if(_pos - n < 0) throw index_out_of_bound();//necessary?
+			if(_pos - n < 0) {std::cout << "t4" << std::endl;  index_out_of_bound();}//necessary?
 			_pos -= n;
 			return *this;
 		}
@@ -107,7 +107,7 @@ public:
 		 * TODO iter++
 		 */
 		iterator operator++(int) {
-			if(_pos + 1 >= this->_iter->_size) throw index_out_of_bound();
+			if(_pos >= this->_iter->_size) {std::cout << "t5" << std::endl;  index_out_of_bound();}
 			iterator tmp(this->_iter, this->_pos);
 			++ _pos;
 			return tmp;
@@ -116,7 +116,7 @@ public:
 		 * TODO ++iter
 		 */
 		iterator& operator++() {
-			if(_pos + 1 >= this->_iter->_size) throw index_out_of_bound();
+			if(_pos >= this->_iter->_size) {std::cout << "t6" << std::endl;  index_out_of_bound();}
 			++ _pos;
 			return *this;
 		}
@@ -124,7 +124,7 @@ public:
 		 * TODO iter--
 		 */
 		iterator operator--(int) {
-			if(_pos - 1 < 0) throw index_out_of_bound();
+			if(_pos - 1 < 0) {std::cout << "t7" << std::endl;  index_out_of_bound();}
 			iterator tmp(this->_iter, this->_pos);
 			-- _pos;
 			return tmp;
@@ -133,7 +133,7 @@ public:
 		 * TODO --iter
 		 */
 		iterator& operator--() {
-			if(_pos - 1 < 0) throw index_out_of_bound();
+			if(_pos - 1 < 0) {std::cout << "t8" << std::endl;  index_out_of_bound();}
 			-- _pos;
 			return *this;
 		}
@@ -182,9 +182,9 @@ public:
 		friend vector;
 		friend iterator;
 	protected:
-		vector* _iter;
+		const vector* _iter;
 		int _pos;
-		const_iterator(vector* iter, int pos = 0):_iter(iter), _pos(pos) {}
+		const_iterator(const vector* iter, int pos = 0):_iter(iter), _pos(pos) {}
 	public:
 		const_iterator():_iter(nullptr), _pos(0) {}
 		const_iterator(const const_iterator &other):_iter(other._iter), _pos(other._pos) {}
@@ -201,34 +201,34 @@ public:
 			return _pos - rhs._pos;
 		}
 		const_iterator& operator+=(const int &n) {
-			if(_pos + n >= this->_iter->_size) throw index_out_of_bound();//necessary?
+			if(_pos + n >= this->_iter->_size) {std::cout << "t9" << std::endl;  index_out_of_bound();}//necessary?
 			_pos += n;
 			return *this;
 		}
 		const_iterator& operator-=(const int &n) {
-			if(_pos - n < 0) throw index_out_of_bound();//necessary?
+			if(_pos - n < 0) {std::cout << "t10" << std::endl;  index_out_of_bound();}//necessary?
 			_pos -= n;
 			return *this;
 		}
 		const_iterator operator++(int) {
-			if(_pos + 1 >= this->_iter->_size) throw index_out_of_bound();
+			if(_pos >= this->_iter->_size) {std::cout << "t11" << std::endl;  index_out_of_bound();}
 			iterator tmp(this->_iter, this->_pos);
 			++ _pos;
 			return tmp;
 		}
 		const_iterator& operator++() {
-			if(_pos + 1 >= this->_iter->_size) throw index_out_of_bound();
+			if(_pos >= this->_iter->_size) {std::cout << "t12" << std::endl;  index_out_of_bound();}
 			++ _pos;
 			return *this;
 		}
 		const_iterator operator--(int) {
-			if(_pos - 1 < 0) throw index_out_of_bound();
+			if(_pos - 1 < 0) {std::cout << "t13" << std::endl;  index_out_of_bound();}
 			iterator tmp(this->_iter, this->_pos);
 			-- _pos;
 			return tmp;
 		}
 		const_iterator& operator--() {
-			if(_pos - 1 < 0) throw index_out_of_bound();
+			if(_pos - 1 < 0) {std::cout << "t14" << std::endl;  index_out_of_bound();}
 			-- _pos;
 			return *this;
 		}
@@ -290,11 +290,11 @@ public:
 	 * throw index_out_of_bound if pos is not in [0, size)
 	 */
 	T & at(const size_t &pos) {
-		if(pos >= _size) throw index_out_of_bound();
+		if(pos >= _size) {std::cout << "t15" << std::endl;  index_out_of_bound();}
 		return _elem[pos];
 	}
 	const T & at(const size_t &pos) const {
-		if(pos >= _size) throw index_out_of_bound();
+		if(pos >= _size) {std::cout << "t16" << std::endl;  index_out_of_bound();}
 		return _elem[pos];
 	}
 	/**
@@ -304,11 +304,11 @@ public:
 	 *   In STL this operator does not check the boundary but I want you to do.
 	 */
 	T & operator[](const size_t &pos) {
-		if(pos >= _size) throw index_out_of_bound();
+		if(pos >= _size) {std::cout << "t17" << std::endl;  index_out_of_bound();}
 		return _elem[pos];
 	}
 	const T & operator[](const size_t &pos) const {
-		if(pos >= _size) throw index_out_of_bound();
+		if(pos >= _size) {std::cout << "t18" << std::endl;  index_out_of_bound();}
 		return _elem[pos];
 	}
 	/**
@@ -388,6 +388,7 @@ public:
 	 * throw index_out_of_bound if ind > size (in this situation ind can be size because after inserting the size will increase 1.)
 	 */
 	iterator insert(const size_t &ind, const T &value) {
+		if(ind > _size) {std::cout << "t19" << std::endl;  index_out_of_bound();}
 		expand();
 		for(int i = _size;i > ind;-- i) {
 			_elem[i] = _elem[i - 1];
@@ -402,11 +403,11 @@ public:
 	 * If the iterator pos refers the last element, the end() iterator is returned.
 	 */
 	iterator erase(iterator pos) {
-		shrink();
 		for(vector<T>::iterator ite = pos;ite != this->end() - 1;++ ite) {
 			*(ite) = *(ite + 1);
 		}
 		-- _size;
+		shrink();
 		return pos;
 	}
 	/**
@@ -415,10 +416,11 @@ public:
 	 * throw index_out_of_bound if ind >= size
 	 */
 	iterator erase(const size_t &ind) {
-		shrink();
+		if(ind >= _size) {std::cout << "t20" << std::endl;  index_out_of_bound();}
 		for(int i = ind;i < _size - 1;++ i) {
 			_elem[i] = _elem[i + 1];
 		}
+		shrink();
 		return iterator(this, ind);
 	}
 	/**
