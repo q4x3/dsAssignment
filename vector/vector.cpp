@@ -18,12 +18,13 @@ protected:
 	int _size;
 	int _capacity;
 	T* _elem;
-	void copy(T const* elem, int lo, int hi) {
+	/*void copy(T const* elem, int lo, int hi) {
 		_elem = (T*)operator new[](_capacity * sizeof(T));
 		for(int i = 0;i < _size;++ i) {
-			_elem[i] = elem[i + lo];
+			new(_elem + i) T(elem[i + lo]);
+			//_elem[i] = elem[i + lo];
 		}
-	}
+	}*/
 	//expand if full
 	void expand() {
 		if(_size < _capacity) return;
@@ -36,13 +37,13 @@ protected:
 		_capacity <<= 1;
 		_elem = (T*)operator new[](_capacity * sizeof(T));
 		for(int i = 0;i < _size;++ i)
-			_elem[i] = prev_elem[i];
+			new(_elem + i) T(prev_elem[i]);
 		for(int i = 0;i < _size;++ i)
 			prev_elem[i].~T();
 		operator delete [](prev_elem, prev_capacity * sizeof(T));
 	}
 	//shrink if 4 * s <= c
-	void shrink() {
+	/*void shrink() {
 		if(_capacity < 6) return;
 		if((_size << 2) > _capacity) return;
 		T* prev_elem = _elem;
@@ -54,7 +55,7 @@ protected:
 		for(int i = 0;i < _size;++ i)
 			prev_elem[i].~T();
 		operator delete [](prev_elem, prev_capacity * sizeof(T));
-	}
+	}*/
 public:
 	/**
 	 * TODO
@@ -274,7 +275,12 @@ public:
 	}
 	//copy constructor
 	vector(const vector &other):_capacity(other._capacity), _size(other._size) {
-		copy(other._elem, 0, other._size);
+		//copy(other._elem, 0, other._size);
+		_elem = (T*)operator new[](_capacity * sizeof(T));
+		for(int i = 0;i < other._size;++ i) {
+			new(_elem + i) T(other._elem[i]);
+			//_elem[i] = elem[i + lo];
+		}
 	}
 	//destructor
 	~vector() {
@@ -290,7 +296,14 @@ public:
 				_elem[i].~T();
 			operator delete [] (_elem, sizeof(T) * _capacity);
 		}
-		copy(other._elem, 0, other._size);
+		//(other._elem, 0, other._size);
+		_size = other._size;
+		_capacity = other._capacity;
+		_elem = (T*)operator new[](_capacity * sizeof(T));
+		for(int i = 0;i < other._size;++ i) {
+			new(_elem + i) T(other._elem[i]);
+			//_elem[i] = elem[i + lo];
+		}
 		return *this;
 	}
 	/**
@@ -382,6 +395,7 @@ public:
 	 */
 	iterator insert(iterator pos, const T &value) {
 		expand();
+		new(_elem + this->end()._pos) T(); //added
 		for(vector<T>::iterator ite = this->end();ite != pos;-- ite) {
 			*(ite) = *(ite - 1);
 		}
@@ -398,6 +412,7 @@ public:
 	iterator insert(const size_t &ind, const T &value) {
 		if(ind > _size) throw index_out_of_bound();
 		expand();
+		new(_elem + this->end()._pos) T(); //added
 		for(int i = _size;i > ind;-- i) {
 			_elem[i] = _elem[i - 1];
 		}
@@ -415,7 +430,7 @@ public:
 			*(ite) = *(ite + 1);
 		}
 		-- _size;
-		shrink();
+		//shrink();
 		return pos;
 	}
 	/**
@@ -428,7 +443,7 @@ public:
 		for(int i = ind;i < _size - 1;++ i) {
 			_elem[i] = _elem[i + 1];
 		}
-		shrink();
+		//shrink();
 		return iterator(this, ind);
 	}
 	/**
@@ -437,7 +452,8 @@ public:
 	void push_back(const T &value) {
 		expand();
 		++ _size;
-		_elem[_size - 1] = value;
+		new(_elem + _size - 1) T(value); //added
+		//_elem[_size - 1] = value;
 	}
 	/**
 	 * remove the last element from the end.
@@ -447,7 +463,7 @@ public:
 		if(_size == 0) throw container_is_empty();
 		-- _size;
 		_elem[_size].~T();
-		shrink();
+		//shrink();
 	}
 };
 
@@ -455,3 +471,4 @@ public:
 }
 
 #endif
+
