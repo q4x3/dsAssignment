@@ -5,7 +5,7 @@
 
 #include <cstddef>
 
-namespace sjtu { 
+namespace sjtu {
 
 template<typename T>
 struct node
@@ -49,6 +49,7 @@ public:
         head->next = rear;
         rear->prev = head;
     }
+    block(int _size, node<T> *_head, node<T> *_rear, block<T> *_prev, block<T> *_next):size(_size), head(_head), rear(_rear), prev(_prev), next(_next) {}
     block(const block &other):size(other.size), prev(nullptr), next(nullptr) {
         head = new node<T>();
         rear = new node<T>();
@@ -111,10 +112,10 @@ public:
         p->next->prev = head;
         delete p;
     }
-    int _size() {
+    int _size() const{
         return size;
     }
-    int index(const node<T>* pos) {
+    int index(node<T>* pos) const {
         node<T> *p = head->next;
         int ind = 0;
         while(p != pos) {
@@ -132,14 +133,48 @@ public:
         }
         return *(p->data);
     }
-    T& front() {
+    T& front() const {
         return *(head->next->data);
     }
-    T& back() {
+    T& back() const {
         return *(rear->prev->data);
     }
-    bool full() {
+    bool full() const {
         return size >= 300;
+    }
+    void split(node<T> *pos) {
+        node<T> *newrear, *newhead;
+        newrear = new node<T>(); newhead = new node<T>();
+        newrear->prev = pos;
+        newhead->next = pos->next;
+        pos->next->prev = newhead;
+        pos->next = newrear;
+        block<T> *newblock = new block<T>(size - this->index(pos) - 1,
+                                          newhead, rear, this, next);
+        size = this->index(pos) + 1;
+        rear = newrear;
+        next = newblock;
+    }
+    void merge() {
+        size = size + next->size;
+        node<T> *newrear = new node<T>();
+        node<T> *p = rear->prev;
+        p->next = next->head->next;
+        next->head->next->prev = p;
+        delete rear;
+        next->rear->prev->next = newrear;
+        block<T> *tmp = next;
+        next->next->prev = this;
+        next = next->next;
+        delete tmp;
+    }
+    bool belong(node<T> *pos) {
+        node<T> *tmp = head->next;
+        while(tmp != rear) {
+            if(tmp == pos) return 1;
+            tmp = tmp->next;
+        }
+        return 0;
     }
 };
 
@@ -163,7 +198,7 @@ public:
     public:
         iterator():iter(nullptr), self(nullptr), pos(nullptr) {}
         iterator(const iterator &other):iter(other.iter), self(other.self), pos(other.pos) {}
-        iterator(const deque<T>* _iter, const block<T>* _self, const node<T>* _pos):iter(_iter), self(_self), pos(_pos) {}
+        iterator(deque<T>* _iter, block<T>* _self, node<T>* _pos):iter(_iter), self(_self), pos(_pos) {}
         /**
          * return a new iterator which pointer n-next elements
          *   even if there are not enough elements, the behaviour is **undefined**.
@@ -262,7 +297,9 @@ public:
          */
         iterator operator++(int) {
             iterator tmp(this->iter, this->self, this->pos);
-            if(pos->next == self->rear) {
+            if(self->next == iter->rr) {
+                pos = pos->next;
+            } else if(pos->next == self->rear) {
                 self = self->next;
                 pos = self->head->next;
             } else {
@@ -274,7 +311,9 @@ public:
          * TODO ++iter
          */
         iterator& operator++() {
-            if(pos->next == self->rear) {
+            if(self->next == iter->rr) {
+                pos = pos->next;
+            } else if(pos->next == self->rear) {
                 self = self->next;
                 pos = self->head->next;
             } else {
@@ -342,7 +381,7 @@ public:
         // it should has similar member method as iterator.
         //  and it should be able to construct from an iterator.
     private:
-            // data members.
+        // data members.
         const deque<T> *iter;
         block<T> *self;
         node<T> *pos;
@@ -350,7 +389,7 @@ public:
         const_iterator():iter(nullptr), self(nullptr), pos(nullptr) {}
         const_iterator(const const_iterator &other):iter(other.iter), self(other.self), pos(other.pos) {}
         const_iterator(const iterator &other):iter(other.iter), self(other.self), pos(other.pos) {}
-        const_iterator(const deque<T>* _iter, const block<T>* _self, const node<T>* _pos):iter(_iter), self(_self), pos(_pos) {}
+        const_iterator(const deque<T>* _iter, block<T>* _self, node<T>* _pos):iter(_iter), self(_self), pos(_pos) {}
         /**
          * return a new iterator which pointer n-next elements
          *   even if there are not enough elements, the behaviour is **undefined**.
@@ -658,10 +697,10 @@ public:
      * returns an iterator to the end.
      */
     iterator end() {
-        return iterator(this, rr->prev, rr->prev, rr->prev->rear->prev);
+        return iterator(this, rr->prev, rr->prev->rear);
     }
     const_iterator cend() const {
-        return const_iterator(this, rr->prev, rr->prev, rr->prev->rear->prev);
+        return const_iterator(this, rr->prev, rr->prev->rear);
     }
     /**
      * checks whether the container is empty.
@@ -696,8 +735,20 @@ public:
      *     throw if the iterator is invalid or it point to a wrong place.
      */
     iterator insert(iterator pos, const T &value) {
-        block<T> *p = 
-
+        if((pos.iter != this) || !(pos.self->belong(pos.pos))) throw invalid_iterator();
+        block<T> *bp = pos.self;
+        node<T> *np = pos.pos, *newnode, *q = np->prev;
+        newnode = new node<T>(value);
+        ++ (bp->size);
+        ++ sz;
+        q->next = newnode;
+        newnode->prev = q;
+        newnode->next = np;
+        np->prev = newnode;
+        if(bp->full()) {
+            bp->split(np);
+        }
+        return pos;
     }
     /**
      * removes specified element at pos.
@@ -705,7 +756,22 @@ public:
      * returns an iterator pointing to the following element, if pos pointing to the last element, end() will be returned.
      * throw if the container is empty, the iterator is invalid or it points to a wrong place.
      */
-    iterator erase(iterator pos) {}
+    iterator erase(iterator pos) {
+        if(sz == 0) throw container_is_empty();
+        if((pos.iter != this) || !(pos.self->belong(pos.pos))) throw invalid_iterator();
+        block<T> *bp = pos.self;
+        node<T> *np = pos.pos, *q = np->next;
+        -- (bp->size);
+        -- sz;
+        np->prev->next = q;
+        q->prev = np->prev;
+        delete np;
+        pos.pos = q;
+        if(bp->_size() + bp->next->_size() <= 300) {
+            bp->merge();
+        }
+        return pos;
+    }
     /**
      * adds an element to the end
      */
@@ -731,7 +797,12 @@ public:
         if(sz == 0) throw container_is_empty();
         -- sz;
         rr->prev->backRemove();
-        //if() disconnect
+        if(rr->prev->size == 0) {
+            block<T> *p = rr->prev;
+            p->prev->next = rr;
+            rr->prev = p->prev;
+            delete p;
+        }
     }
     /**
      * inserts an element to the beginning.
@@ -759,7 +830,13 @@ public:
         -- sz;
         block<T> *p = hd->next;
         p->frontRemove();
-        //if() disconnect or merge
+        if(p->_size() == 0) {
+            hd->next = p->next;
+            p->next->prev = hd;
+            delete p;
+        } else if (p->_size() + p->next->_size() <= 300) {
+            p->merge();
+        }
     }
 };
 
