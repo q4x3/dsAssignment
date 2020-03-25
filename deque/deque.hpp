@@ -24,8 +24,7 @@ struct node
     }
     ~node() {
         if(data) {
-            (*data).~T();
-            operator delete(data, sizeof(T));
+            delete data;
         }
     }
 };
@@ -154,17 +153,17 @@ public:
         next = newblock;
     }
     void merge() {
-        size = size + next->size;
-        node<T> *newrear = new node<T>();
-        node<T> *p = rear->prev;
-        p->next = next->head->next;
-        next->head->next->prev = p;
-        delete rear;
-        next->rear->prev->next = newrear;
-        block<T> *tmp = next;
-        next->next->prev = this;
-        next = next->next;
-        delete tmp;
+        block *q = next;
+        q->next->prev = this;
+        next = q->next;
+        rear->prev->next = q->head->next;
+        q->head->next->prev = rear->prev;
+        rear->prev = q->rear->prev;
+        q->rear->prev->next = rear;
+        size += q->size;
+        q->head->next = q->rear;
+        q->rear->prev = q->head;
+        delete q;
     }
     bool belong(node<T> *pos) {
         node<T> *tmp = head->next;
