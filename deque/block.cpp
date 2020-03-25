@@ -80,11 +80,39 @@ public:
         q->prev = newnode;
         ++ size;
     }
+    void backInsert(const T &dt) {
+        ++ size;
+        node<T> *p = new node<T>(dt), *q = rear->prev;
+        q->next = p;
+        p->prev = q;
+        p->next = rear;
+        rear->prev = p;
+    }
+    void backRemove() {
+        -- size;
+        node<T> *p = rear->prev;
+        p->prev->next = rear;
+        rear->prev = p->prev;
+        delete p;
+    }
+    void frontRemove() {
+        -- size;
+        node<T> *p = head->next;
+        head->next = p->next;
+        p->next->prev = head;
+        delete p;
+    }
     int _size() {
         return size;
     }
-    node<T>* hd() {
-        return head;
+    int index(const node<T>* pos) {
+        node<T> *p = head->next;
+        int ind = 0;
+        while(p != pos) {
+            ++ ind;
+            p = p->next;
+        }
+        return ind;
     }
     T& at(const int pos) {
         node<T> *p = head->next;
@@ -95,13 +123,34 @@ public:
         }
         return *(p->data);
     }
+    node<T>* frontnode() {
+        return head->next;
+    }
+    T& front() {
+        return *(head->next->data);
+    }
+    T& back() {
+        return *(rear->prev->data);
+    }
+    bool full() {
+        return size == 300;
+    }
 };
 
 int main() {
-    block<int> b;
-    b.insert(6, 0);
-    b.insert(10, 1);
-    node<int> *p = b.hd();
-    cout << b._size() << " " << b.at(1) << endl;
+    block<int> *b;
+    b = new block<int>;
+    for(int i = 0;i < 300;++ i) {
+        b->backInsert(i + 1);
+    }
+    block<int> c = *b;
+    cout << c._size() << " " << c.back() << endl;
+    cout << c.full() << endl;
+    c.frontRemove();
+    node<int> *no = c.frontnode();
+    cout << c._size() << " " << c.front() << endl;
+    cout << c.full() << endl;
+    cout << c.index(no) << endl;
+    delete b;
     return 0;
 }
