@@ -15,13 +15,11 @@ struct node
     node():data(nullptr), prev(nullptr), next(nullptr) {}
     node(node* pr, node* nx):data(nullptr), prev(pr), next(nx) {}
     node(const T &dt):prev(nullptr), next(nullptr) {
-        data = (T*)operator new(sizeof(T));
-        new(data) T(dt);
+        data = new T(dt);
     }
     node(const node &other):prev(nullptr), next(nullptr) {
         if(other.data) {
-            data = (T*)operator new(sizeof(T));
-            new(data) T(*(other.data));
+            data = new T(*(other.data));
         } else data = nullptr;
     }
     ~node() {
@@ -65,7 +63,6 @@ public:
         rear->prev = p1;
     }
     ~block() {
-        size = 0;
         node<T> *p = head->next, *q;
         while(p != rear) {
             q = p;
@@ -153,6 +150,7 @@ public:
                                           newhead, rear, this, next);
         size = this->index(pos) + 1;
         rear = newrear;
+        next->prev = newblock;
         next = newblock;
     }
     void merge() {
@@ -170,6 +168,7 @@ public:
     }
     bool belong(node<T> *pos) {
         node<T> *tmp = head->next;
+        if(pos == rear) return 1;
         while(tmp != rear) {
             if(tmp == pos) return 1;
             tmp = tmp->next;
@@ -225,12 +224,13 @@ public:
             //TODO
             if(n == 0) return *this;
             if(n < 0) return *this + (- n);
-            int _n = self->index(pos) - n;
-            block<T> *p = self->prev;
-            while(_n < 0) {
-                _n += p->_size();
+            int _n = n - self->index(pos);
+            block<T> *p = self;
+            while(_n > 0) {
                 p = p->prev;
+                _n -= p->_size();
             }
+            _n = - _n;
             node<T> *q = p->head->next;
             while(_n) {
                 -- _n;
@@ -278,12 +278,13 @@ public:
             //TODO
             if(n == 0) return *this;
             if(n < 0) return (*this += (- n));
-            int _n = self->index(pos) - n;
-            block<T> *p = self->prev;
-            while(_n < 0) {
-                _n += p->_size();
+            int _n = n - self->index(pos);
+            block<T> *p = self;
+            while(_n > 0) {
                 p = p->prev;
+                _n -= p->_size();
             }
+            _n = - _n;
             node<T> *q = p->head->next;
             while(_n) {
                 -- _n;
@@ -570,8 +571,11 @@ public:
     deque():sz(0) {
         hd = new block<T>;
         rr = new block<T>;
-        hd->next = rr;
-        rr->prev = hd;
+        block<T> *emp = new block<T>;
+        hd->next = emp;
+        emp->prev = hd;
+        emp->next = rr;
+        rr->prev = emp;
     }
     deque(const deque &other):sz(other.sz) {
         hd = new block<T>();
@@ -607,7 +611,7 @@ public:
     deque &operator=(const deque &other) {
         if(&other == this) return *this;
         sz = other.sz;
-        block<T> *p = hd->next, *p2 = other.hd->next, *q;
+        block<T> *p = hd->next, *p2 = (other.hd)->next, *q;
         while(p != rr) {
             q = p;
             p = p->next;
@@ -623,6 +627,7 @@ public:
         }
         p->next = rr;
         rr->prev = p;
+        return *this;
     }
     /**
      * access specified element with bounds checking
@@ -767,7 +772,7 @@ public:
         q->prev = np->prev;
         delete np;
         pos.pos = q;
-        if(bp->_size() + bp->next->_size() <= 300) {
+        if ((bp->next != rr) && (bp->_size() + bp->next->_size() <= 300)) {
             bp->merge();
         }
         return pos;
@@ -834,7 +839,7 @@ public:
             hd->next = p->next;
             p->next->prev = hd;
             delete p;
-        } else if (p->_size() + p->next->_size() <= 300) {
+        } else if ((p->next != rr) && (p->_size() + p->next->_size() <= 300)) {
             p->merge();
         }
     }

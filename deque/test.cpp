@@ -1,214 +1,111 @@
-//Provided by desire2020/Steve Lu
+// provided by your new friend Mercy. Enjoy!
 
-/***********************************************************************
-Hint: This test case almost completely tests the correctness of your deque.
-So if all tests are passed, feel free to enhance your performance! :)
-Yours Sincerely. Rabbit.
-***********************************************************************/
+#include <iostream>
+#include <ctime>
+#include <vector>
+#include <deque>
+#include <random>
+
 #include "class-integer.hpp"
 #include "class-matrix.hpp"
 #include "class-bint.hpp"
-#include <iostream>
-#include <vector>
-#include <deque>
 #include "deque.hpp"
 
-long long randNum(long long x,long long maxNum)
-{
-    x = (x * 10007) % maxNum;
-    return x + 1;
-} 
-const size_t N = 10005LL;
+std::default_random_engine randnum(time(NULL));
 
-void error()
-{
-    std::cout << "Error, mismatch found." << std::endl;
-    exit(0);
+static const int MAX_N = 15000;
+
+template <typename Ans, typename Test>
+bool isEqual(Ans &ans, Test &test) {
+    if (ans.size() != test.size())
+        return false;
+
+    if (ans.empty()) return true;
+
+    for (int i = 0; i < ans.size(); i++) {
+        if (randnum() % 2) {
+            if (ans[i] != test[i]) return false;
+        } else {
+            if (ans.at(i) != test.at(i)) return false;
+        }
+    }
+
+    if (ans.empty() != test.empty() || ans.front() != test.front() ||
+        ans.back() != test.back())
+        return false;
+
+    return true;
 }
 
-void TestInteger()
-{
-    std::cout << "Test 1 : Test for classes without default constructor...";
-    sjtu::deque<Integer> dInt;
-    std::vector<Integer> vInt;
-    for (int i = 0; i < N; ++i) {
-        vInt.push_back(Integer(randNum(i, N + 17)));
-        dInt.push_back(vInt[i]);
+int ansCounter = 0, myCounter = 0, noUseCounter = 0;
+// you should construct and deconstruct this class correctly
+class DynamicType {
+public:
+    int *pct;
+    double *data;
+    DynamicType (int *p) : pct(p) , data(new double[2]) {
+        (*pct)++;
     }
-    for (int i = 0; i < N; ++i) {
-        if (!(vInt[i] == dInt[i]))
-            error();
+    DynamicType (const DynamicType &other) : pct(other.pct), data(new double[2]) {
+        (*pct)++;
     }
-    std::cout << "Correct." << std::endl;
-}
-void TestMatrix()
-{
-    std::cout << "Test 2 : Test for Matrix, a class with dynamic members...";
-    sjtu::deque<Diamond::Matrix<double>> dM;
-    std::vector<Diamond::Matrix<double>> vM;
-    for (int i = 0; i < N; ++i) {
-        vM.push_back(Diamond::Matrix<double>(randNum(i + 1, 10 + 7), randNum(i + 2, 10 + 7), randNum(i + 3, (100 + 17)) * 1.0 / randNum(i, 17)));
-        dM.push_back(vM[i]);
+    DynamicType &operator =(const DynamicType &other) {
+        if (this == &other) return *this;
+        (*pct)--;
+        pct = other.pct;
+        (*pct)++;
+        delete [] data;
+        data = new double[2];
+        return *this;
     }
-    for (int i = 0; i < N; ++i) {
-        if (!(vM[i] == dM[i]))
-            error();
+    ~DynamicType() {
+        delete [] data;
+        (*pct)--;
     }
-    std::cout << "Correct." << std::endl;
-}
+    bool operator != (const DynamicType &rhs) const { return false; }
+};
 
-void TestBint()
-{
-    std::cout << "Test 3 : Test for big integer...";
-    sjtu::deque<Util::Bint> dBint;
-    std::vector<Util::Bint> vBint;
-    for (long long i = 1LL << 50; i < (1LL << 50) + N; ++i) {
-        vBint.push_back(Util::Bint(i) * randNum(i, (1 << 25) ));
-        dBint.push_back(vBint.back());
+bool memoryTest() {
+    // you should call the constructor and deconstructor correctly
+    std::deque<DynamicType> ans;
+    sjtu::deque<DynamicType> deq;
+
+    for (int i = 0; i < MAX_N; i++) {
+        ans.push_back(DynamicType(&ansCounter));
+        deq.push_back(DynamicType(&myCounter));
     }
 
-    for (int i = 0; i < N; ++i) {
-        if (!(vBint[i] == dBint[i]))
-            error();
-    }
-    std::cout << "Correct." << std::endl;
-}
+    for (int i = 0; i < MAX_N / 10; i++) {
+        int index = randnum() % ans.size();
+        switch(randnum() % 6) {
+            case 0: ans.push_back(DynamicType(&ansCounter));
+                deq.push_back(DynamicType(&myCounter));
+                break;
+            case 1: ans.push_front(DynamicType(&ansCounter));
+                deq.push_front(DynamicType(&myCounter));
+                break;
+            case 2: ans.pop_back(); deq.pop_back();
+                break;
+            case 3: ans.pop_front(); deq.pop_front();
+                break;
+            case 4: ans.insert(ans.begin() + index, DynamicType(&ansCounter));
+                deq.insert(deq.begin() + index, DynamicType(&myCounter));
+                break;
+            case 5: ans.erase(ans.begin() + index);
+                deq.erase(deq.begin() + index);
+                break;
+            default : break;
+        }
 
-void TestCopyConstructorAndOperatorEqu()
-{
-    std::cout << "Test 4 : Test for copy constructor and operator=...";
-    sjtu::deque<long long> *pInt;
-    pInt = new sjtu::deque<long long>;
-    for (long long i = 0; i < N; ++i) {
-        pInt -> push_back(i);
+        if (ansCounter != myCounter)
+            return false;
     }
-    sjtu::deque<long long> &dInt = *pInt;
-    sjtu::deque<long long> dualInt(dInt);
-    sjtu::deque<long long> dualInt_oper;
-    dualInt_oper = dInt;
-    for (long long i = 0; i < N; ++i)
-    {
-        if (dualInt[i] != dInt[i] || dualInt_oper[i] != dInt[i])
-            error();
-    }
-    dualInt_oper = dualInt_oper;
-    delete pInt;
-    for (long long i = 0; i < N; ++i)
-    {
-        if (dualInt_oper[i] != dualInt[i])
-            error();
-    }
-    std::cout << "Correct." << std::endl;
+
+    return isEqual(ans, deq);
 }
 
-void TestIteratorSequenceAccess()
-{
-    std::cout << "Test 5 : Test for accessing the container in the order of the sequence, using iterator...";
-    sjtu::deque<long long> dInt;
-    for (long long i = 0; i < N; ++i) {
-        dInt.push_back(i);
-    }
-    sjtu::deque<long long> :: iterator it;
-    it = dInt.begin();
-    for (long long i = 0; i < N; ++i) {
-        if (!(*it == dInt[i]))
-            error();
-        ++it;
-    }
-    if (it != dInt.end())
-        error();
-    std::cout << "Correct." << std::endl;
-}
 
-void TestIteratorRandomAccess()
-{
-    std::cout << "Test 6 : Test for accessing the container randomly, using iterator...";
-    sjtu::deque<long long> dInt;
-    std::vector<long long> vInt;
-    for (long long i = 0; i < N; ++i) {
-        dInt.push_back(i);
-        vInt.push_back(i);
-    }
-    for (long long i = 0; i < N; ++i) {
-        if (!(*(dInt.begin() + i) == vInt[i]))
-            error();
-    }
-    std::cout << "Correct." << std::endl;
-}
-
-void TestInsertAndErase()
-{
-    std::cout << "Test 7 : Test for random erase and insert...";
-    sjtu::deque<long long> dInt;
-    std::vector<long long> vInt;
-    for (long long i = 0; i < N; ++i) {
-        dInt.push_back(i);
-        vInt.push_back(i);
-    }
-    vInt.insert(vInt.begin() + 2, 2);
-    dInt.insert(dInt.begin() + 2, 2);
-    vInt.insert(vInt.begin() + 23, 23);
-    dInt.insert(dInt.begin() + 23, 23);
-    vInt.insert(vInt.begin() + 233, 233);
-    dInt.insert(dInt.begin() + 233, 233);
-    vInt.erase(vInt.begin() + 2333);
-    dInt.erase(dInt.begin() + 2333);
-    for (long long i = 2300; i < 2500; ++i) {
-        if (!(*(dInt.begin() + i) == vInt[i]))
-            error();
-        //    std::cout << i << " " << *(dInt.begin() + i) << " " << vInt[i] << std::endl;
-    }
-    std::cout << "Correct." << std::endl;
-}
-
-void TestPopAndPush()
-{
-    std::cout << "Test 8 : Test for pop() and push()...";
-    sjtu::deque<long long> dInt, drInt;
-    std::vector<long long> vInt;
-    std::vector<long long> rInt;
-    for (size_t i = 0; i < 1114LL; ++i)
-    {
-        dInt.push_back(i);
-        vInt.push_back(i);
-    }
-    for (size_t i = 0; i < 107LL; ++i)
-    {
-        dInt.pop_back();
-        vInt.pop_back();
-    }
-    for (size_t i = 0; i < 1114LL; ++i)
-    {
-        drInt.push_front(i);
-        rInt.push_back(i);
-    }
-    for (size_t i = 0; i < 107LL; ++i)
-    {
-        drInt.pop_front();
-        rInt.pop_back();
-    }
-    for (size_t i = 0; i < 1007LL; ++i)
-    {
-        if (!(dInt[i] == vInt[i]))
-            error();
-        if (!(drInt[1006LL - i] == rInt[i]))
-            error();
-    }
-
-    std::cout << "Correct." << std::endl;
-
-}
-
-int main()
-{
-    TestInteger();
-    TestMatrix();
-    TestBint();
-    TestCopyConstructorAndOperatorEqu();
-    TestIteratorSequenceAccess(); //sth bad happened and solved
-    TestIteratorRandomAccess();
-    TestInsertAndErase(); //sth bad happened and solved
-    TestPopAndPush();
-    std::cout << "Congratulations. Your submission has passed all correctness tests. Use valgrind to ensure that there ain't any memory leaks in your deque. Good job! :)" << std::endl;
+int main() {
+    std::cout << memoryTest() << std::endl;
     return 0;
 }
