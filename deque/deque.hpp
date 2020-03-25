@@ -561,7 +561,7 @@ public:
             return ((iter != rhs.iter) || (self != rhs.self) || (pos != rhs.pos));
         }
         bool operator!=(const const_iterator &rhs) const {
-            return ((iter != rhs.iter) || (self != rhs.iter) || (pos != rhs.pos));
+            return ((iter != rhs.iter) || (self != rhs.self) || (pos != rhs.pos));
         }
     };
     /**
