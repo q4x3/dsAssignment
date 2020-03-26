@@ -1,4 +1,6 @@
 #include <iostream>
+#include <deque>
+#include "deque.hpp"
 
 using namespace std;
 
@@ -26,8 +28,18 @@ class A {
 };
 
 int main() {
-    A awsl;
+    /*A awsl;
     A *p = &awsl;
     A::C awslcao(p);
-    cout << awslcao.test() << endl;
+    cout << awslcao.test() << endl;*/
+    sjtu::deque<int> ddint;
+    for(int i = 0;i < 20;++ i) {
+        ddint.push_back(i);
+    }
+    for(int i = 0;i < 20;++ i) {
+        ddint.pop_front();
+    }
+    for(auto a : ddint)
+        cout << a << endl;
+    cout << endl;
 }

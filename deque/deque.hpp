@@ -374,7 +374,7 @@ public:
             return ((iter != rhs.iter) || (self != rhs.self) || (pos != rhs.pos));
         }
         bool operator!=(const const_iterator &rhs) const {
-            return ((iter != rhs.iter) || (self != rhs.iter) || (pos != rhs.pos));
+            return ((iter != rhs.iter) || (self != rhs.self) || (pos != rhs.pos));
         }
     };
     class const_iterator {
@@ -801,7 +801,7 @@ public:
         if(sz == 0) throw container_is_empty();
         -- sz;
         rr->prev->backRemove();
-        if(rr->prev->size == 0) {
+        if(rr->prev->size == 0 && rr->prev->prev != hd) {
             block<T> *p = rr->prev;
             p->prev->next = rr;
             rr->prev = p->prev;
@@ -834,7 +834,7 @@ public:
         -- sz;
         block<T> *p = hd->next;
         p->frontRemove();
-        if(p->_size() == 0) {
+        if(p->_size() == 0 && rr->prev->prev != hd) {
             hd->next = p->next;
             p->next->prev = hd;
             delete p;
