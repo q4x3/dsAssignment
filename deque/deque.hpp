@@ -40,7 +40,7 @@ protected:
     int size;
     block *prev, *next;
 public:
-    block():size(0) {
+    block():size(0), prev(nullptr), next(nullptr) {
         head = new node<T>();
         rear = new node<T>();
         head->next = rear;
@@ -208,7 +208,7 @@ public:
             if(n < 0) return *this - (- n);
             int _n = n + self->index(pos);
             block<T> *p = self;
-            while(_n >= p->_size()) {
+            while(_n >= p->_size() && p->next != iter->rr) {
                 _n -= p->_size();
                 p = p->next;
             }
@@ -259,9 +259,9 @@ public:
             //TODO
             if(n == 0) return *this;
             if(n < 0) return (*this -= (- n));
-            int _n = self->index(pos) + n;
+            int _n = n + self->index(pos);
             block<T> *p = self;
-            while(_n >= p->_size()) {
+            while(_n >= p->_size() && p->next != iter->rr) {
                 _n -= p->_size();
                 p = p->next;
             }
@@ -749,8 +749,9 @@ public:
         newnode->prev = q;
         newnode->next = np;
         np->prev = newnode;
+        pos = iterator(this, bp, newnode);
         if(bp->full()) {
-            bp->split(np);
+            bp->split(newnode);
         }
         return pos;
     }
@@ -841,6 +842,11 @@ public:
         } else if ((p->next != rr) && (p->_size() + p->next->_size() <= 300)) {
             p->merge();
         }
+    }
+
+    // func for debug
+    void pause() {
+        return;
     }
 };
 

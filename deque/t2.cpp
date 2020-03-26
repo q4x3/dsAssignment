@@ -33,7 +33,7 @@ int main() {
     A::C awslcao(p);
     cout << awslcao.test() << endl;*/
     sjtu::deque<int> ddint;
-    for(int i = 0;i < 20;++ i) {
+    /*for(int i = 0;i < 20;++ i) {
         ddint.push_back(i);
     }
     for(int i = 0;i < 20;++ i) {
@@ -41,5 +41,5 @@ int main() {
     }
     for(auto a : ddint)
         cout << a << endl;
-    cout << endl;
+    cout << endl;*/
 }

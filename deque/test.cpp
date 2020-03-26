@@ -94,19 +94,30 @@ bool isEqual(std::deque<Int> &a, sjtu::deque<Int> &b) {
     return true;
 }
 
-std::pair<bool, double> popFrontChecker() {
+std::pair<bool, double> iteratorRedNChecker() {
     std::deque<Int> a;
     sjtu::deque<Int> b;
     for (int i = 0; i < N; i++) {
         int pos = rand() % (a.size() + 1);
         int tmp = rand();
-        a.push_back(tmp);
-        b.push_back(tmp);
+        a.insert(a.begin() + pos, tmp);
+        b.insert(b.begin() + pos, tmp);
     }
     timer.init();
+    for (int i = 1; i <= N; i++) {
+        int pos = rand() % (a.size());
+        int tmp = rand();
+        if (*(a.end() - i) != *(b.end() - i)) {
+            return std::make_pair(false, 0);
+        }
+        *(a.end() - i) = tmp;
+        *(b.end() - i) = tmp;
+    }
     for (int i = 0; i < N; i++) {
-        a.pop_front();
-        b.pop_front();
+        int pos = rand() % (a.size());
+        if (*(a.begin() - (-i)) != *(b.begin() - (-i))) {
+            return std::make_pair(false, 0);
+        }
     }
     timer.stop();
     if (!isEqual(a, b)) {
@@ -116,7 +127,7 @@ std::pair<bool, double> popFrontChecker() {
     }
 }
 
-std::pair<bool, double> popFrontTimer() {
+std::pair<bool, double> iteratorRedNTimer() {
     sjtu::deque<int> a;
     for (int i = 0; i < N_SPEED; i++) {
         int op = rand() % 3;
@@ -124,9 +135,10 @@ std::pair<bool, double> popFrontTimer() {
         else if (op == 1) a.push_front(rand());
         else if (op == 2) a.insert(a.begin() + rand() % (a.size() + 1), rand());
     }
+    auto itA = a.end();
     timer.init();
     for (int i = 0; i < N_SPEED; i++) {
-        a.pop_front();
+        itA = a.end() - i;
     }
     timer.stop();
     return std::make_pair(true, timer.getTime());
@@ -136,7 +148,7 @@ static CheckerPair TEST_A[] = {
     //std::make_pair("Push Series -> push_back operation testing...", pushBackChecker),
     //std::make_pair("Push Series -> push_front operation testing...", pushFrontChecker),
     //std::make_pair("Pop Series -> pop_back operation testing...", popBackChecker),
-    std::make_pair("Pop Series -> pop_front operation testing...", popFrontChecker),
+    //std::make_pair("Pop Series -> pop_front operation testing...", popFrontChecker),
     //std::make_pair("Push Series -> insert operation testing...", insertChecker),
     //std::make_pair("Pop Series -> erase operation testing...", eraseChecker),
     //std::make_pair("Visitation Series -> at operation testing...", atChecker),
@@ -146,7 +158,7 @@ static CheckerPair TEST_A[] = {
     //std::make_pair("Visitation Series -> front operation testing...", frontChecker),
     //std::make_pair("Visitation Series -> back operator testing...", backChecker),
     //std::make_pair("Iterator Series -> +n operator testing...", iteratorAddNChecker),
-    //std::make_pair("Iterator Series -> -n operator testing...", iteratorRedNChecker),
+    std::make_pair("Iterator Series -> -n operator testing...", iteratorRedNChecker),
     //std::make_pair("Iterator Series -> +=n operator testing...", iteratorAddENChecker),
     //std::make_pair("Iterator Series -> -=n operator testing...", iteratorRedENChecker),
     //std::make_pair("Iterator Serise: Prefix ++ operator testing...", iteratorPAddOneChecker),
@@ -173,7 +185,7 @@ static CheckerPair TEST_B[] = {
     //std::make_pair("push_back", pushBackTimer),
     //std::make_pair("pop_back", popBackTimer),
     //std::make_pair("push_front", pushFrontTimer),
-    std::make_pair("pop_front", popFrontTimer),
+    //std::make_pair("pop_front", popFrontTimer),
     //std::make_pair("front", frontTimer),
     //std::make_pair("back", backTimer),
     //std::make_pair("begin", beginTimer),
@@ -183,7 +195,7 @@ static CheckerPair TEST_B[] = {
     //std::make_pair("iterator ++", iteratorAddOneTimer),
     //std::make_pair("iterator --", iteratorRedOneTimer),
     //std::make_pair("iterator +n", iteratorAddNTimer),
-    //std::make_pair("iterator -n", iteratorRedNTimer),
+    std::make_pair("iterator -n", iteratorRedNTimer),
     //std::make_pair("insert", insertTimer),
     //std::make_pair("erase", eraseTimer),
     //std::make_pair("Copy Constructor", copyConstructorTimer),
