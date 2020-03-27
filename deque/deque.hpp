@@ -241,7 +241,9 @@ public:
         // if these two iterators points to different vectors, throw invaild_iterator.
         int operator-(const iterator &rhs) const {
             //TODO
-            if(iter != rhs.iter) throw invalid_iterator();
+            if(iter != rhs.iter) {
+                throw invalid_iterator();
+            }
             int lind = self->index(pos), rind = rhs.self->index(rhs.pos);
             block<T> *lp = self, *rp = rhs.self, *tmp = iter->hd->next;
             while(tmp != lp) {
@@ -350,6 +352,12 @@ public:
          * TODO *it
          */
         T& operator*() const {
+            if(!self->belong(pos)) {
+                throw invalid_iterator();
+            }
+            if(self->head == pos || self->rear == pos) {
+                throw invalid_iterator();
+            }
             return *(pos->data);
         }
         /**
@@ -401,7 +409,7 @@ public:
             if(n < 0) return *this - (- n);
             int _n = n + self->index(pos);
             block<T> *p = self;
-            while(_n >= p->_size()) {
+            while(_n >= p->_size() && p->next != iter->rr) {
                 _n -= p->_size();
                 p = p->next;
             }
@@ -416,12 +424,13 @@ public:
             //TODO
             if(n == 0) return *this;
             if(n < 0) return *this + (- n);
-            int _n = self->index(pos) - n;
-            block<T> *p = self->prev;
-            while(_n < 0) {
-                _n += p->_size();
+            int _n = n - self->index(pos);
+            block<T> *p = self;
+            while(_n > 0) {
                 p = p->prev;
+                _n -= p->_size();
             }
+            _n = - _n;
             node<T> *q = p->head->next;
             while(_n) {
                 -- _n;
@@ -433,7 +442,9 @@ public:
         // if these two iterators points to different vectors, throw invaild_iterator.
         int operator-(const const_iterator &rhs) const {
             //TODO
-            if(iter != rhs.iter) throw invalid_iterator();
+            if(iter != rhs.iter) {
+                throw invalid_iterator();
+            }
             int lind = self->index(pos), rind = rhs.self->index(rhs.pos);
             block<T> *lp = self, *rp = rhs.self, *tmp = iter->hd->next;
             while(tmp != lp) {
@@ -451,9 +462,9 @@ public:
             //TODO
             if(n == 0) return *this;
             if(n < 0) return (*this -= (- n));
-            int _n = self->index(pos) + n;
+            int _n = n + self->index(pos);
             block<T> *p = self;
-            while(_n >= p->_size()) {
+            while(_n >= p->_size() && p->next != iter->rr) {
                 _n -= p->_size();
                 p = p->next;
             }
@@ -469,12 +480,13 @@ public:
             //TODO
             if(n == 0) return *this;
             if(n < 0) return (*this += (- n));
-            int _n = self->index(pos) - n;
-            block<T> *p = self->prev;
-            while(_n < 0) {
-                _n += p->_size();
+            int _n = n - self->index(pos);
+            block<T> *p = self;
+            while(_n > 0) {
                 p = p->prev;
+                _n -= p->_size();
             }
+            _n = - _n;
             node<T> *q = p->head->next;
             while(_n) {
                 -- _n;
@@ -487,8 +499,10 @@ public:
          * TODO iter++
          */
         const_iterator operator++(int) {
-            const_iterator tmp(this->iter, this->self, this->pos);
-            if(pos->next == self->rear) {
+            iterator tmp(this->iter, this->self, this->pos);
+            if(self->next == iter->rr) {
+                pos = pos->next;
+            } else if(pos->next == self->rear) {
                 self = self->next;
                 pos = self->head->next;
             } else {
@@ -500,7 +514,9 @@ public:
          * TODO ++iter
          */
         const_iterator& operator++() {
-            if(pos->next == self->rear) {
+            if(self->next == iter->rr) {
+                pos = pos->next;
+            } else if(pos->next == self->rear) {
                 self = self->next;
                 pos = self->head->next;
             } else {
@@ -512,7 +528,7 @@ public:
          * TODO iter--
          */
         const_iterator operator--(int) {
-            const_iterator tmp(this->iter, this->self, this->pos);
+            iterator tmp(this->iter, this->self, this->pos);
             if(pos->prev == self->head) {
                 self = self->prev;
                 pos = self->rear->prev;
@@ -537,6 +553,12 @@ public:
          * TODO *it
          */
         T& operator*() const {
+            if(!self->belong(pos)) {
+                throw invalid_iterator();
+            }
+            if(self->head == pos || self->rear == pos) {
+                throw invalid_iterator();
+            }
             return *(pos->data);
         }
         /**
@@ -579,12 +601,12 @@ public:
     deque(const deque &other):sz(other.sz) {
         hd = new block<T>();
         rr = new block<T>();
-        block<T> *p1 = hd, *p2 = other.hd->next, *q;
+        block<T> *p1 = hd, *p2 = other.hd->next, *newblock;
         while(p2 != other.rr) {
-            q = p1;
-            p1->next = new block<T>(*p2);
+            newblock = new block<T>(*p2);
+            p1->next = newblock;
+            newblock->prev = p1;
             p1 = p1->next;
-            p1->next = q;
             p2 = p2->next;
         }
         p1->next = rr;
@@ -723,14 +745,17 @@ public:
      */
     void clear() {
         sz = 0;
-        block<T> *p = hd->next, *q;
+        block<T> *p = hd->next, *q, *emp;
         while(p != rr) {
             q = p;
             p = p->next;
             delete q;
         }
-        hd->next = rr;
-        rr->prev = hd;
+        emp = new block<T>();
+        hd->next = emp;
+        emp->prev = hd;
+        emp->next = rr;
+        rr->prev = emp;
     }
     /**
      * inserts elements at the specified locat on in the container.
@@ -739,7 +764,9 @@ public:
      *     throw if the iterator is invalid or it point to a wrong place.
      */
     iterator insert(iterator pos, const T &value) {
-        if((pos.iter != this) || !(pos.self->belong(pos.pos))) throw invalid_iterator();
+        if((pos.iter != this) || !(pos.self->belong(pos.pos))) {
+            throw invalid_iterator();
+        }
         block<T> *bp = pos.self;
         node<T> *np = pos.pos, *newnode, *q = np->prev;
         newnode = new node<T>(value);
@@ -763,7 +790,9 @@ public:
      */
     iterator erase(iterator pos) {
         if(sz == 0) throw container_is_empty();
-        if((pos.iter != this) || !(pos.self->belong(pos.pos))) throw invalid_iterator();
+        if((pos.iter != this) || !(pos.self->belong(pos.pos))) {
+            throw invalid_iterator();
+        }
         block<T> *bp = pos.self;
         node<T> *np = pos.pos, *q = np->next;
         -- (bp->size);
@@ -771,9 +800,14 @@ public:
         np->prev->next = q;
         q->prev = np->prev;
         delete np;
-        pos.pos = q;
-        if ((bp->next != rr) && (bp->_size() + bp->next->_size() <= 300)) {
-            bp->merge();
+        if(q == pos.self->rear && pos.self->next != pos.iter->rr) {// 加了特判
+            pos.self = pos.self->next;
+            pos.pos = pos.self->head->next;
+        } else {
+            pos.pos = q;
+        }
+        if ((pos.self->next != rr) && (pos.self->_size() + pos.self->next->_size() <= 300)) {
+            pos.self->merge();
         }
         return pos;
     }
